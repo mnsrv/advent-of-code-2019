@@ -14,19 +14,27 @@ func main() {
 		fmt.Println(err)
 	}
 	input := strings.Split(string(data), "\n")
-	sum := 0
+	part1 := 0
+	part2 := 0
 
 	for _, str := range input {
-		sum += findFuel(str)
+		mass, _ := strconv.Atoi(str)
+		part1 += findFuel(mass)
+		part2 += findFuelForFuel(mass, 0)
 	}
 
-	fmt.Println("sum:", sum)
+	fmt.Println("part one:", part1)
+	fmt.Println("part two:", part2)
 }
 
-func findFuel(str string) int {
-	mass, err := strconv.Atoi(str)
-	if err != nil {
-		fmt.Println(err)
-	}
+func findFuel(mass int) int {
 	return int(math.Floor(float64(mass)/3)) - 2
+}
+
+func findFuelForFuel(mass int, sum int) int {
+	fuel := findFuel(mass)
+	if fuel > 0 {
+		return findFuelForFuel(fuel, sum+fuel)
+	}
+	return sum
 }
