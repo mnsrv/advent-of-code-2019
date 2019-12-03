@@ -22,20 +22,26 @@ func main() {
 	}
 	input := strings.Split(string(data), "\n")
 	minDistance := math.MaxInt16
+	minSteps := math.MaxInt16
 
 	wire1 := calculateWire(input[0])
 	wire2 := calculateWire(input[1])
 
-	for key := range wire1 {
-		if _, ok := wire2[key]; ok {
-			distance := calculateDistance(center, key)
+	for point, steps1 := range wire1 {
+		if steps2, ok := wire2[point]; ok {
+			distance := calculateDistance(center, point)
+			steps := steps1 + steps2
 			if distance < minDistance {
 				minDistance = distance
+			}
+			if steps < minSteps {
+				minSteps = steps
 			}
 		}
 	}
 
 	fmt.Println("part one:", minDistance) // 403
+	fmt.Println("part two:", minSteps)    // 4158
 }
 
 func getNextPoint(direction string, lastPoint point) point {
@@ -57,14 +63,18 @@ func calculateWire(path string) map[point]int {
 	wire := make(map[point]int)
 	lastPoint := center
 	instructions := strings.Split(path, ",")
+	step := 1
 	for _, command := range instructions {
 		direction := command[:1]
 		steps, _ := strconv.Atoi(command[1:])
 		i := 1
 		for i <= steps {
 			lastPoint = getNextPoint(direction, lastPoint)
-			wire[lastPoint] = 0
+			if _, ok := wire[lastPoint]; !ok {
+				wire[lastPoint] = step
+			}
 			i++
+			step++
 		}
 	}
 	return wire
