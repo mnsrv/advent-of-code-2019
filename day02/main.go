@@ -14,7 +14,6 @@ func main() {
 	}
 	inputStrings := strings.Split(string(data), ",")
 	input := make([]int, 0, len(inputStrings))
-	index := 0
 
 	for _, s := range inputStrings {
 		n, err := strconv.Atoi(s)
@@ -24,8 +23,31 @@ func main() {
 		input = append(input, n)
 	}
 
-	input[1] = 12
-	input[2] = 2
+	noun := 0
+	verb := 0
+
+	for i := 0; i <= 99; i++ {
+		for j := 0; j <= 99; j++ {
+			output := computer(input, i, j)
+			if output == 19690720 {
+				noun = i
+				verb = j
+				break
+			}
+		}
+	}
+
+	fmt.Println("part one:", computer(input, 12, 2))
+	fmt.Println("part two:", 100*noun+verb)
+}
+
+func computer(array []int, noun int, verb int) int {
+	index := 0
+	input := make([]int, len(array))
+	copy(input, array)
+
+	input[1] = noun
+	input[2] = verb
 
 Loop:
 	for {
@@ -39,10 +61,10 @@ Loop:
 		case 2:
 			result = input[input[index+1]] * input[input[index+2]]
 		case 99:
-			fmt.Println("HALT", input[0])
+			// fmt.Println("HALT", input[0])
 			break Loop
 		default:
-			fmt.Println("WRONG")
+			// fmt.Println("WRONG")
 			break Loop
 		}
 		input[input[index+3]] = result
@@ -50,4 +72,6 @@ Loop:
 
 		index += 4
 	}
+
+	return input[0]
 }
