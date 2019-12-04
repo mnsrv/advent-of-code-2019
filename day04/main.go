@@ -23,7 +23,8 @@ func main() {
 		inputNumber = append(inputNumber, n)
 	}
 
-	count := 0
+	count1 := 0
+	count2 := 0
 
 	// value within range
 	for i := inputNumber[0]; i <= inputNumber[1]; i++ {
@@ -31,6 +32,8 @@ func main() {
 		var prev rune
 		decrease := true
 		double := false
+		exactDouble := false
+		doubleMap := make(map[string]int)
 		for pos, char := range str {
 			if pos > 0 {
 				if char < prev {
@@ -38,6 +41,7 @@ func main() {
 				}
 				if char == prev {
 					double = true
+					doubleMap[string(char)]++
 				}
 			}
 			prev = char
@@ -54,8 +58,19 @@ func main() {
 		if !double {
 			continue
 		}
-		count++
+		count1++
+		for _, v := range doubleMap {
+			if v == 1 {
+				exactDouble = true
+			}
+		}
+		// exact two double chars
+		if !exactDouble {
+			continue
+		}
+		count2++
 	}
 
-	fmt.Println("part one:", count) // 1767
+	fmt.Println("part one:", count1) // 1767
+	fmt.Println("part two:", count2) // 1192
 }
