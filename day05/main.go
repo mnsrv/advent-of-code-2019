@@ -22,7 +22,7 @@ func main() {
 		input = append(input, n)
 	}
 
-	computer(input) // part one: 9961446
+	computer(input) // part one: 9961446 part two: 742621
 }
 
 func getIndex(input []int, index int, mode int) int {
@@ -75,6 +75,44 @@ Loop:
 			mode1 := params % 10
 			fmt.Println("OUTPUT:", input[getIndex(input, index+1, mode1)])
 			index += 2
+		case 5:
+			mode1 := params % 10
+			params = params / 10
+			mode2 := params % 10
+			if input[getIndex(input, index+1, mode1)] != 0 {
+				index = input[getIndex(input, index+2, mode2)]
+			} else {
+				index += 3
+			}
+		case 6:
+			mode1 := params % 10
+			params = params / 10
+			mode2 := params % 10
+			if input[getIndex(input, index+1, mode1)] == 0 {
+				index = input[getIndex(input, index+2, mode2)]
+			} else {
+				index += 3
+			}
+		case 7:
+			mode1 := params % 10
+			params = params / 10
+			mode2 := params % 10
+			if input[getIndex(input, index+1, mode1)] < input[getIndex(input, index+2, mode2)] {
+				input[input[index+3]] = 1
+			} else {
+				input[input[index+3]] = 0
+			}
+			index += 4
+		case 8:
+			mode1 := params % 10
+			params = params / 10
+			mode2 := params % 10
+			if input[getIndex(input, index+1, mode1)] == input[getIndex(input, index+2, mode2)] {
+				input[input[index+3]] = 1
+			} else {
+				input[input[index+3]] = 0
+			}
+			index += 4
 		case 99:
 			fmt.Println("HALT")
 			break Loop
