@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 func main() {
@@ -23,18 +24,51 @@ func main() {
 	}
 
 	highest := 0
+	var wg sync.WaitGroup
 
 	for perm := range generatePermutations([]int{0, 1, 2, 3, 4}) {
 		signal := 0
-		for _, phase := range perm {
-			signal = computer(input, phase, signal)
+		channels := []chan int{make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2)}
+
+		for index, phase := range perm {
+			wg.Add(1)
+			prev := index - 1
+			if prev < 0 {
+				prev = len(channels) - 1
+			}
+			go computer(input, phase, channels[prev], channels[index], &wg)
 		}
+		channels[len(channels)-1] <- 0
+		wg.Wait()
+		signal = <-channels[len(channels)-1]
 		if signal > highest {
 			highest = signal
 		}
 	}
 
 	fmt.Println("part one:", highest)
+
+	for perm := range generatePermutations([]int{5, 6, 7, 8, 9}) {
+		signal := 0
+		channels := []chan int{make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2), make(chan int, 2)}
+
+		for index, phase := range perm {
+			wg.Add(1)
+			prev := index - 1
+			if prev < 0 {
+				prev = len(channels) - 1
+			}
+			go computer(input, phase, channels[prev], channels[index], &wg)
+		}
+		channels[len(channels)-1] <- 0
+		wg.Wait()
+		signal = <-channels[len(channels)-1]
+		if signal > highest {
+			highest = signal
+		}
+	}
+
+	fmt.Println("part two:", highest)
 }
 
 func generatePermutations(data []int) <-chan []int {
@@ -82,7 +116,7 @@ func getIndex(input []int, index int, mode int) int {
 	return input[index]
 }
 
-func computer(array []int, phase int, input int) int {
+func computer(array []int, phase int, inputChannel chan int, outputChannel chan int, wg *sync.WaitGroup) int {
 	index := 0
 	commands := make([]int, len(array))
 	copy(commands, array)
@@ -117,14 +151,16 @@ Loop:
 				phaseSetted = true
 				commands[commands[index+1]] = phase
 			} else {
-				commands[commands[index+1]] = input
+				commands[commands[index+1]] = <-inputChannel
 			}
+			// fmt.Println("INPUT:", phase, commands[commands[index+1]])
 			index += 2
 		case 4:
 			mode1 := params % 10
-			// fmt.Println("OUTPUT:", commands[getIndex(commands, index+1, mode1)])
 			output = commands[getIndex(commands, index+1, mode1)]
 			index += 2
+			// fmt.Println("OUTPUT:", phase, output)
+			outputChannel <- output
 		case 5:
 			mode1 := params % 10
 			params = params / 10
@@ -171,5 +207,6 @@ Loop:
 			break Loop
 		}
 	}
+	wg.Done()
 	return output
 }
