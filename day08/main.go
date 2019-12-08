@@ -22,7 +22,9 @@ func main() {
 	}
 
 	// 25 x 6
-	size := 25 * 6
+	width := 25
+	height := 6
+	size := width * height
 	layers := make([][]int, len(input)/size)
 	layerIndex := 0
 	layerInfo := make(map[int]map[int]int)
@@ -56,5 +58,36 @@ func main() {
 		}
 	}
 
-	fmt.Println("part one:", layerInfo[minIndex][1]*layerInfo[minIndex][2])
+	fmt.Println("part one:", layerInfo[minIndex][1]*layerInfo[minIndex][2]) // 1792
+
+	image := "\n"
+	for index := range layers[0] {
+		pixel := getPixelColor(layers, 0, index)
+		nextRow := ""
+		if (index+1)%width == 0 {
+			nextRow = "\n"
+		}
+		image = image + pixel + nextRow
+	}
+	fmt.Println("part two:", image) // LJECH
+	//	x      xx xxxx  xx  x  x
+	//	x       x x    x  x x  x
+	//	x       x xxx  x    xxxx
+	//	x       x x    x    x  x
+	//	x    x  x x    x  x x  x
+	//	xxxx  xx  xxxx  xx  x  x
+}
+
+func getPixelColor(layers [][]int, layerIndex int, index int) string {
+	pixel := layers[layerIndex][index]
+	switch pixel {
+	case 2:
+		return getPixelColor(layers, layerIndex+1, index)
+	case 1:
+		return "x"
+	case 0:
+		return " "
+	default:
+		return strconv.Itoa(pixel)
+	}
 }
