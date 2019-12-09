@@ -23,7 +23,8 @@ func main() {
 		input = append(input, n)
 	}
 
-	fmt.Println("part one:", computer(input)) // 2494485073
+	fmt.Println("part one:", computer(input, 1)) // 2494485073
+	fmt.Println("part two:", computer(input, 2)) // 44997
 }
 
 func getIndex(input []int, index int, mode int, relativeBase int) int {
@@ -39,7 +40,7 @@ func getIndex(input []int, index int, mode int, relativeBase int) int {
 	return input[index]
 }
 
-func computer(array []int) int {
+func computer(array []int, input int) int {
 	index := 0
 	commands := make([]int, math.MaxInt16)
 	copy(commands, array)
@@ -76,9 +77,7 @@ Loop:
 		case 3:
 			mode1 := params % 10
 			fmt.Printf("Enter ID of the system: ")
-			result := 0
-			fmt.Scanln(&result)
-			commands[getIndex(commands, index+1, mode1, relativeBase)] = result
+			commands[getIndex(commands, index+1, mode1, relativeBase)] = input
 			// fmt.Println("INPUT:", result)
 			index += 2
 		case 4:
