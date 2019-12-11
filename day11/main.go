@@ -28,7 +28,14 @@ func main() {
 		input = append(input, n)
 	}
 
-	fmt.Println("part one:", computer(input)) // 2141
+	fmt.Println("part one:", computer(input, 0, false)) // 2141
+	fmt.Println("part two:", computer(input, 1, true))  // RPJCFZKF
+	// ###  ###    ##  ##  #### #### #  # ####
+	// #  # #  #    # #  # #       # # #  #
+	// #  # #  #    # #    ###    #  ##   ###
+	// ###  ###     # #    #     #   # #  #
+	// # #  #    #  # #  # #    #    # #  #
+	// #  # #     ##   ##  #    #### #  # #
 }
 
 func getIndex(input []int, index int, mode int, relativeBase int) int {
@@ -44,7 +51,7 @@ func getIndex(input []int, index int, mode int, relativeBase int) int {
 	return input[index]
 }
 
-func computer(array []int) int {
+func computer(array []int, startColor int, paint bool) int {
 	index := 0
 	commands := make([]int, math.MaxInt16)
 	copy(commands, array)
@@ -53,9 +60,10 @@ func computer(array []int) int {
 	position := point{0, 0}
 	direction := 0 // degrees up down right left
 
-	all := make(map[point]int)
+	all := map[point]int{position: startColor}
 	outputCounter := 0
-	paintCounter := 0
+	maxX := 0
+	maxY := 0
 
 Loop:
 	for {
@@ -98,7 +106,6 @@ Loop:
 			if outputCounter%2 == 1 {
 				// new color
 				all[position] = commands[getIndex(commands, index+1, mode1, relativeBase)]
-				paintCounter++
 			} else {
 				// rotate
 				// 0 left 90
@@ -121,6 +128,12 @@ Loop:
 					y++
 				case 270, -90:
 					x--
+				}
+				if x > maxX {
+					maxX = x
+				}
+				if y > maxY {
+					maxY = y
 				}
 				position = point{x, y}
 			}
@@ -173,6 +186,18 @@ Loop:
 			index += 2
 		case 99:
 			// fmt.Println("HALT")
+			if paint {
+				for i := 0; i <= maxY; i++ {
+					for j := 0; j <= maxX; j++ {
+						if all[point{j, i}] == 1 {
+							fmt.Print("#")
+						} else {
+							fmt.Print(" ")
+						}
+					}
+					fmt.Print("\n")
+				}
+			}
 			output = len(all)
 			break Loop
 		default:
