@@ -18,6 +18,42 @@ type reaction struct {
 }
 
 func main() {
+	fmt.Println("part one:", produce(1)) // 783895
+	fmt.Println("part two:", part2())    // 1896688
+}
+
+func part2() int {
+	target := 1000000000000
+	result, _ := binarySearch(target/produce(1), target, target)
+
+	return result
+}
+
+func binarySearch(min int, max int, search int) (result int, searchCount int) {
+	mid := (min + max) / 2
+
+	produced := produce(mid)
+
+	switch {
+	case min == max:
+		if produced > search {
+			result = mid - 1
+		} else {
+			result = mid
+		}
+	case produced > search:
+		result, searchCount = binarySearch(min, mid, search)
+	case produced < search:
+		result, searchCount = binarySearch(mid+1, max, search)
+	default: // produced == search
+		result = mid
+	}
+
+	searchCount++
+	return
+}
+
+func produce(n int) int {
 	data, err := ioutil.ReadFile("input")
 	if err != nil {
 		fmt.Println(err)
@@ -36,10 +72,6 @@ func main() {
 		receipts[right.name] = reaction{value, right.amount}
 	}
 
-	fmt.Println("part one:", produce(receipts, 1)) // 783895
-}
-
-func produce(receipts map[string]reaction, n int) int {
 	inventory := make(map[string]int)
 
 	return triggerReaction("FUEL", n, receipts, inventory)
