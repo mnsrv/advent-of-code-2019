@@ -30,6 +30,8 @@ const space = "⬛️"
 const oxygen = "✅"
 const startPlace = "🚩"
 const stopSquare = "🟥"
+const oxygenSquare = "🟩"
+const preOxygenSquare = "🟨"
 
 func main() {
 	data, err := ioutil.ReadFile("input")
@@ -47,16 +49,91 @@ func main() {
 	}
 
 	area := make(map[point]string)
-	queue := make([]point, 0)
-	part1(input, area, queue, false)
-	part1(input, area, queue, false)
-	// 294
+	part1(input, area)
+	part1(input, area)                    // 294
+	fmt.Println("part two:", part2(area)) // 388
 }
 
-func part1(input []int, area map[point]string, queue []point, byStep bool) int {
-	numberOfMovementCommands := 0
+func canFillWithOxygen(square string) (canFill bool) {
+	// no red white start robot green
+	switch square {
+	case stopSquare:
+		canFill = true
+	case dot:
+		canFill = true
+	case startPlace:
+		canFill = true
+	case droid:
+		canFill = true
+	}
+	return
+}
+
+func hasSpaceWithoutOxygen(area map[point]string) (hasSpace bool) {
+	for _, v := range area {
+		if canFillWithOxygen(v) {
+			hasSpace = true
+			break
+		}
+	}
+	return
+}
+
+func part2(area map[point]string) int {
+	var oxygenPoint point
+	for k, v := range area {
+		if v == oxygen {
+			oxygenPoint = k
+		}
+	}
+
+	minutes := 0
+	area[oxygenPoint] = oxygenSquare
+	for {
+		points := make([]point, 0)
+		for k, v := range area {
+			if v == oxygenSquare {
+				top := point{k.x + 1, k.y}
+				if canFillWithOxygen(area[top]) {
+					area[top] = preOxygenSquare
+					points = append(points, top)
+				}
+				bottom := point{k.x - 1, k.y}
+				if canFillWithOxygen(area[bottom]) {
+					area[bottom] = preOxygenSquare
+					points = append(points, bottom)
+				}
+				right := point{k.x, k.y + 1}
+				if canFillWithOxygen(area[right]) {
+					area[right] = preOxygenSquare
+					points = append(points, right)
+				}
+				left := point{k.x, k.y - 1}
+				if canFillWithOxygen(area[left]) {
+					area[left] = preOxygenSquare
+					points = append(points, left)
+				}
+			}
+		}
+		for _, v := range points {
+			area[v] = oxygenSquare
+		}
+		minutes++
+		printArea(area)
+
+		hasSpace := hasSpaceWithoutOxygen(area)
+		if !hasSpace {
+			break
+		}
+	}
+
+	return minutes
+}
+
+func part1(input []int, area map[point]string) {
 	channel := make(chan int)
 	start := point{0, 0}
+	prevPosition := start
 	position := start
 	area[position] = droid
 	command := 1
@@ -65,12 +142,6 @@ func part1(input []int, area map[point]string, queue []point, byStep bool) int {
 
 Infinite:
 	for {
-		if byStep {
-			result := 0
-			fmt.Println("---")
-			fmt.Scanln(&result)
-		}
-
 		channel <- command
 		output := <-channel
 		nextPosition := getNextPosition(position, command, output)
@@ -78,10 +149,11 @@ Infinite:
 		switch output {
 		case 0:
 			wallPosition := getNextPosition(position, command, 1)
-			command = getNextCommand(command, area, nextPosition)
+			command = getNextCommand(command, area, prevPosition, nextPosition)
 			area[wallPosition] = wall
 		case 1:
-			command = getNextCommand(command, area, nextPosition)
+			prevPosition = position
+			command = getNextCommand(command, area, prevPosition, nextPosition)
 			area[nextPosition] = droid
 			if position == start {
 				area[position] = startPlace
@@ -100,17 +172,14 @@ Infinite:
 			printArea(area)
 			break Infinite
 		}
-		// fmt.Println(area)
 		printArea(area)
 		position = nextPosition
-		numberOfMovementCommands++
 	}
 
 	close(channel)
-	return numberOfMovementCommands
 }
 
-func getNextCommand(command int, area map[point]string, position point) (nextCommand int) {
+func getNextCommand(command int, area map[point]string, from point, position point) (nextCommand int) {
 	// 1: north ⬆
 	// 2: south ⬇
 	// 3: west  ⬅
@@ -129,13 +198,13 @@ func getNextCommand(command int, area map[point]string, position point) (nextCom
 		nextCommand = 2
 	} else if area[left] == nowhere {
 		nextCommand = 3
-	} else if area[up] == dot || area[up] == startPlace {
+	} else if (area[up] == dot || area[up] == startPlace || area[up] == oxygen) && from != up {
 		nextCommand = 1
-	} else if area[right] == dot || area[right] == startPlace {
+	} else if (area[right] == dot || area[right] == startPlace || area[right] == oxygen) && from != right {
 		nextCommand = 4
-	} else if area[down] == dot || area[down] == startPlace {
+	} else if (area[down] == dot || area[down] == startPlace || area[down] == oxygen) && from != down {
 		nextCommand = 2
-	} else if area[left] == dot || area[left] == startPlace {
+	} else if (area[left] == dot || area[left] == startPlace || area[left] == oxygen) && from != left {
 		nextCommand = 3
 	} else {
 		fmt.Println("NEVER HERE")
