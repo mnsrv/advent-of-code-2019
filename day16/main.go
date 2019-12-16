@@ -3,12 +3,41 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"math"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func main() {
+	fmt.Println("part one:", part1()) // 34841690
+	fmt.Println("part two:", part2()) // 48776785
+}
+
+func part2() string {
+	// defer timeTrack(time.Now(), "part 2")
+	input, _ := ioutil.ReadFile("input")
+	signal := strings.Repeat(string(input), 10000)
+	offset, _ := strconv.Atoi(signal[:7])
+	output := []int{}
+
+	for _, c := range signal[offset:] {
+		output = append(output, int(c-'0'))
+	}
+	for p := 0; p < 100; p++ {
+		sum := 0
+		for i := len(output) - 1; i >= 0; i-- {
+			sum += output[i]
+			output[i] = sum % 10
+		}
+	}
+
+	return strings.Trim(strings.Join(strings.Fields(fmt.Sprint(output[:8])), ""), "[]")
+}
+
+func part1() string {
+	// defer timeTrack(time.Now(), "part 1")
 	data, err := ioutil.ReadFile("input")
 	if err != nil {
 		fmt.Println(err)
@@ -23,12 +52,8 @@ func main() {
 		input = append(input, n)
 	}
 
-	fmt.Println("part one:", part1(input, 100))
-}
-
-func part1(input []int, count int) string {
 	output := make([]int, 0, len(input))
-	for i := 0; i < count; i++ {
+	for i := 0; i < 100; i++ {
 		output = phase(input)
 		copy(input, output)
 	}
@@ -66,4 +91,9 @@ func getPattern(n int) []int {
 		pattern[i] = defaultPattern[index]
 	}
 	return append(pattern[1:], pattern[0])
+}
+
+func timeTrack(start time.Time, name string) {
+	elapsed := time.Since(start)
+	log.Printf("%s took %s", name, elapsed)
 }
